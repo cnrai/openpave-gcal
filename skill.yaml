@@ -1,0 +1,150 @@
+# OpenPAVE Google Calendar Skill
+# Read and manage Google Calendar events securely using OAuth
+
+name: gcal
+version: 1.0.0
+description: Read and manage Google Calendar events securely using OAuth
+
+author:
+  name: OpenPave
+  url: https://github.com/openpave
+
+license: MIT
+homepage: https://github.com/openpave/pave-gcal
+repository: openpave/pave-gcal
+
+# Execution pattern
+pattern: sandbox
+entrypoint: index.js
+
+# Available commands
+commands:
+  - name: auth
+    description: Show authentication status
+    options:
+      - --summary
+      - --json
+
+  - name: calendars
+    description: List all calendars
+    options:
+      - --max <number>
+      - --summary
+      - --json
+
+  - name: today
+    description: Show today's events
+    options:
+      - -c, --calendar <id>
+      - -n, --max <count>
+      - --summary
+      - --full
+      - --json
+
+  - name: upcoming
+    description: Show upcoming events (default 7 days)
+    args:
+      - "[days]"
+    options:
+      - -c, --calendar <id>
+      - -n, --max <count>
+      - -d, --days <number>
+      - --summary
+      - --full
+      - --json
+
+  - name: list
+    description: List events from specific calendar
+    args:
+      - "[calendar]"
+    options:
+      - -c, --calendar <id>
+      - -n, --max <count>
+      - --summary
+      - --full
+      - --json
+
+  - name: search
+    description: Search events
+    args:
+      - <query>
+    options:
+      - -c, --calendar <id>
+      - -n, --max <count>
+      - -f, --from <date>
+      - -t, --to <date>
+      - --summary
+      - --full
+      - --json
+
+  - name: event
+    description: Get specific event details
+    args:
+      - <eventId>
+    options:
+      - -c, --calendar <id>
+      - --summary
+      - --json
+
+# Token configuration for secure sandbox access
+tokens:
+  google-calendar:
+    type: oauth
+    description: Google Calendar API OAuth credentials
+    domains:
+      - www.googleapis.com
+      - "*.googleapis.com"
+    env:
+      required:
+        - GOOGLE_CALENDAR_CLIENT_ID
+        - GOOGLE_CALENDAR_CLIENT_SECRET
+        - GOOGLE_CALENDAR_REFRESH_TOKEN
+      optional:
+        - GOOGLE_CALENDAR_ACCESS_TOKEN
+    config:
+      env: GOOGLE_CALENDAR_ACCESS_TOKEN
+      type: oauth
+      domains:
+        - www.googleapis.com
+        - "*.googleapis.com"
+      placement:
+        type: header
+        name: Authorization
+        format: "Bearer {token}"
+      refreshEnv: GOOGLE_CALENDAR_REFRESH_TOKEN
+      refreshUrl: https://oauth2.googleapis.com/token
+      clientIdEnv: GOOGLE_CALENDAR_CLIENT_ID
+      clientSecretEnv: GOOGLE_CALENDAR_CLIENT_SECRET
+
+# Sandbox permissions
+permissions:
+  fs.read: []
+  fs.write: []
+  network:
+    - www.googleapis.com
+    - oauth2.googleapis.com
+  modules:
+    - fs
+    - path
+  system: []
+
+# Platform compatibility
+platforms:
+  - darwin
+  - linux
+  - win32
+
+engines:
+  node: ">=16.0.0"
+
+# Metadata
+keywords:
+  - calendar
+  - google
+  - oauth
+  - events
+  - scheduling
+  - appointments
+
+category: productivity
+icon: "📅"
