@@ -17,17 +17,17 @@
     "sandbox",
     "skill"
   ],
-  "author": "OpenPave",
+  "author": "cnrai",
   "license": "MIT",
   "engines": {
     "node": ">=16.0.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/openpave/pave-gcal.git"
+    "url": "https://github.com/cnrai/openpave-gcal.git"
   },
   "bugs": {
-    "url": "https://github.com/openpave/pave-gcal/issues"
+    "url": "https://github.com/cnrai/openpave-gcal/issues"
   },
-  "homepage": "https://github.com/openpave/pave-gcal#readme"
+  "homepage": "https://github.com/cnrai/openpave-gcal"
 }
