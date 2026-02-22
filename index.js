@@ -278,6 +278,41 @@ class CalendarClient {
       ...options
     });
   }
+
+  /**
+   * Create a new calendar event
+   */
+  createEvent(calendarId, eventData) {
+    return this.request(`/calendars/${encodeURIComponent(calendarId)}/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(eventData)
+    });
+  }
+
+  /**
+   * Update an existing calendar event
+   */
+  updateEvent(calendarId, eventId, eventData) {
+    return this.request(`/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(eventData)
+    });
+  }
+
+  /**
+   * Delete a calendar event
+   */
+  deleteEvent(calendarId, eventId) {
+    return this.request(`/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, {
+      method: 'DELETE'
+    });
+  }
 }
 
 // Event formatting utilities
@@ -358,8 +393,12 @@ COMMANDS:
   list [calendar]         List events from specific calendar
   search <query>          Search events
   event <eventId>         Get specific event details
+  
+  create, add             Create a new event
+  update, edit <eventId>  Update an existing event
+  delete, remove <eventId> Delete an event
 
-OPTIONS:
+READ OPTIONS:
   -c, --calendar <id>     Calendar ID (default: primary)
   -n, --max <count>       Maximum results (default: varies by command)
   -q, --query <query>     Search query
@@ -370,10 +409,39 @@ OPTIONS:
   --full                  Show full event details
   --json                  Output raw JSON
 
-EXAMPLES:
+CREATE/UPDATE OPTIONS:
+  --title, --summary <title>     Event title/summary
+  --description, --desc <desc>   Event description
+  --location, --loc <location>   Event location
+  --start <datetime>             Start time (ISO format: 2024-01-15T10:00:00)
+  --end <datetime>               End time (ISO format: 2024-01-15T11:00:00)
+  --timezone, --tz <zone>        Time zone (default: Asia/Hong_Kong)
+  --attendees <emails>           Comma-separated attendee emails
+  --reminder <minutes>           Reminder minutes before event (default: system default)
+
+DELETE OPTIONS:
+  --yes, -y                      Skip confirmation prompt
+
+READ EXAMPLES:
   node gcal.js today --summary
   node gcal.js upcoming 14 --calendar primary
   node gcal.js search "meeting" --from 2026-01-01 --to 2026-01-31
+  node gcal.js event abc123def456
+  
+CREATE EXAMPLES:
+  node gcal.js create --title "Team Meeting" --start "2024-01-15T10:00:00" --end "2024-01-15T11:00:00"
+  node gcal.js add --title "Lunch with John" --start "2024-01-15T12:00:00" --end "2024-01-15T13:00:00" --location "Restaurant XYZ"
+  node gcal.js create --title "Project Review" --start "2024-01-15T14:00:00" --end "2024-01-15T15:00:00" \\
+    --description "Q4 project review meeting" --attendees "john@company.com,jane@company.com"
+
+UPDATE EXAMPLES:
+  node gcal.js update abc123def456 --title "Updated Meeting Title"
+  node gcal.js edit abc123def456 --start "2024-01-15T10:30:00" --end "2024-01-15T11:30:00"
+  node gcal.js update abc123def456 --location "Conference Room B" --attendees "john@company.com"
+
+DELETE EXAMPLES:
+  node gcal.js delete abc123def456 --yes
+  node gcal.js remove abc123def456
   node gcal.js calendars --json
   node gcal.js list primary --max 20
 
@@ -667,6 +735,270 @@ function showEvent(args) {
   }
 }
 
+/**
+ * Create a new calendar event
+ */
+function createEvent(args) {
+  try {
+    const client = new CalendarClient();
+    const calendarId = args.options.calendar || args.options.c || 'primary';
+    
+    // Required parameters
+    const title = args.options.title || args.options.summary || args.positional[0];
+    const start = args.options.start || args.options.from;
+    const end = args.options.end || args.options.to;
+    
+    if (!title) {
+      console.error('❌ Event title is required');
+      console.error('Usage: node gcal.js create --title "Meeting" --start "2024-01-15T10:00:00" --end "2024-01-15T11:00:00"');
+      process.exit(1);
+    }
+    
+    if (!start) {
+      console.error('❌ Start time is required');
+      console.error('Usage: node gcal.js create --title "Meeting" --start "2024-01-15T10:00:00" --end "2024-01-15T11:00:00"');
+      process.exit(1);
+    }
+    
+    if (!end) {
+      console.error('❌ End time is required');
+      console.error('Usage: node gcal.js create --title "Meeting" --start "2024-01-15T10:00:00" --end "2024-01-15T11:00:00"');
+      process.exit(1);
+    }
+    
+    // Build event object
+    const event = {
+      summary: title,
+      start: {
+        dateTime: start,
+        timeZone: args.options.timezone || args.options.tz || 'Asia/Hong_Kong'
+      },
+      end: {
+        dateTime: end,
+        timeZone: args.options.timezone || args.options.tz || 'Asia/Hong_Kong'
+      }
+    };
+    
+    // Optional parameters
+    if (args.options.description || args.options.desc) {
+      event.description = args.options.description || args.options.desc;
+    }
+    
+    if (args.options.location || args.options.loc) {
+      event.location = args.options.location || args.options.loc;
+    }
+    
+    if (args.options.attendees) {
+      event.attendees = args.options.attendees.split(',').map(email => ({
+        email: email.trim()
+      }));
+    }
+    
+    // Reminders
+    if (args.options.reminder !== false) {
+      event.reminders = {
+        useDefault: true
+      };
+      
+      if (args.options.reminder && args.options.reminder !== true) {
+        const minutes = parseInt(args.options.reminder);
+        if (!isNaN(minutes)) {
+          event.reminders = {
+            useDefault: false,
+            overrides: [
+              { method: 'popup', minutes: minutes }
+            ]
+          };
+        }
+      }
+    }
+    
+    const createdEvent = client.createEvent(calendarId, event);
+    
+    if (args.options.json) {
+      console.log(JSON.stringify(createdEvent, null, 2));
+      return;
+    }
+    
+    const formatted = EventFormatter.format(createdEvent);
+    
+    console.log(`✅ Event created successfully!\n`);
+    console.log(`📅 ${formatted.summary}`);
+    console.log(`🕐 ${EventFormatter.formatTimeRange(createdEvent)}`);
+    console.log(`📅 ${formatDate(formatted.start)}`);
+    
+    if (formatted.location) {
+      console.log(`📍 ${formatted.location}`);
+    }
+    
+    if (formatted.attendees.length > 0) {
+      console.log(`👥 ${formatted.attendees.length} attendee(s)`);
+    }
+    
+    console.log(`🆔 Event ID: ${createdEvent.id}`);
+    
+    if (createdEvent.htmlLink) {
+      console.log(`🔗 ${createdEvent.htmlLink}`);
+    }
+    
+  } catch (error) {
+    console.error('❌ Failed to create event:', error.message);
+    process.exit(1);
+  }
+}
+
+/**
+ * Update an existing calendar event
+ */
+function updateEvent(args) {
+  try {
+    if (!args.positional || args.positional.length === 0) {
+      console.error('❌ Event ID required');
+      console.error('Usage: node gcal.js update <eventId> --title "New Title"');
+      process.exit(1);
+    }
+    
+    const client = new CalendarClient();
+    const calendarId = args.options.calendar || args.options.c || 'primary';
+    const eventId = args.positional[0];
+    
+    // Get current event
+    const currentEvent = client.getEvent(calendarId, eventId);
+    
+    // Build update object (only include fields that are being changed)
+    const updates = {};
+    
+    if (args.options.title || args.options.summary) {
+      updates.summary = args.options.title || args.options.summary;
+    }
+    
+    if (args.options.description !== undefined || args.options.desc !== undefined) {
+      updates.description = args.options.description || args.options.desc || '';
+    }
+    
+    if (args.options.location !== undefined || args.options.loc !== undefined) {
+      updates.location = args.options.location || args.options.loc || '';
+    }
+    
+    if (args.options.start || args.options.from) {
+      updates.start = {
+        dateTime: args.options.start || args.options.from,
+        timeZone: args.options.timezone || args.options.tz || currentEvent.start.timeZone || 'Asia/Hong_Kong'
+      };
+    }
+    
+    if (args.options.end || args.options.to) {
+      updates.end = {
+        dateTime: args.options.end || args.options.to,
+        timeZone: args.options.timezone || args.options.tz || currentEvent.end.timeZone || 'Asia/Hong_Kong'
+      };
+    }
+    
+    if (args.options.attendees !== undefined) {
+      if (args.options.attendees === '') {
+        updates.attendees = [];
+      } else {
+        updates.attendees = args.options.attendees.split(',').map(email => ({
+          email: email.trim()
+        }));
+      }
+    }
+    
+    // Check if any updates were provided
+    if (Object.keys(updates).length === 0) {
+      console.error('❌ No updates provided');
+      console.error('Available options: --title, --description, --location, --start, --end, --attendees');
+      process.exit(1);
+    }
+    
+    const updatedEvent = client.updateEvent(calendarId, eventId, updates);
+    
+    if (args.options.json) {
+      console.log(JSON.stringify(updatedEvent, null, 2));
+      return;
+    }
+    
+    const formatted = EventFormatter.format(updatedEvent);
+    
+    console.log(`✅ Event updated successfully!\n`);
+    console.log(`📅 ${formatted.summary}`);
+    console.log(`🕐 ${EventFormatter.formatTimeRange(updatedEvent)}`);
+    console.log(`📅 ${formatDate(formatted.start)}`);
+    
+    if (formatted.location) {
+      console.log(`📍 ${formatted.location}`);
+    }
+    
+    if (formatted.attendees.length > 0) {
+      console.log(`👥 ${formatted.attendees.length} attendee(s)`);
+    }
+    
+    console.log(`🆔 Event ID: ${updatedEvent.id}`);
+    
+    if (updatedEvent.htmlLink) {
+      console.log(`🔗 ${updatedEvent.htmlLink}`);
+    }
+    
+  } catch (error) {
+    console.error('❌ Failed to update event:', error.message);
+    process.exit(1);
+  }
+}
+
+/**
+ * Delete a calendar event
+ */
+function deleteEvent(args) {
+  try {
+    if (!args.positional || args.positional.length === 0) {
+      console.error('❌ Event ID required');
+      console.error('Usage: node gcal.js delete <eventId>');
+      process.exit(1);
+    }
+    
+    const client = new CalendarClient();
+    const calendarId = args.options.calendar || args.options.c || 'primary';
+    const eventId = args.positional[0];
+    
+    // Get event details before deletion (for confirmation)
+    let eventTitle = eventId;
+    try {
+      const event = client.getEvent(calendarId, eventId);
+      eventTitle = event.summary || eventId;
+    } catch (e) {
+      // Event might not exist or not accessible, continue with deletion attempt
+    }
+    
+    // Confirmation check (unless --yes flag is provided)
+    if (!args.options.yes && !args.options.y) {
+      console.error(`❌ This will permanently delete the event: "${eventTitle}"`);
+      console.error('💡 Use --yes flag to confirm: node gcal.js delete <eventId> --yes');
+      process.exit(1);
+    }
+    
+    client.deleteEvent(calendarId, eventId);
+    
+    if (args.options.json) {
+      console.log(JSON.stringify({ success: true, eventId: eventId }, null, 2));
+      return;
+    }
+    
+    console.log(`✅ Event deleted successfully!`);
+    console.log(`🗑️ Deleted: "${eventTitle}"`);
+    console.log(`🆔 Event ID: ${eventId}`);
+    
+  } catch (error) {
+    if (error.status === 404) {
+      console.error('❌ Event not found (it may have already been deleted)');
+    } else if (error.status === 403) {
+      console.error('❌ Permission denied - you may not have permission to delete this event');
+    } else {
+      console.error('❌ Failed to delete event:', error.message);
+    }
+    process.exit(1);
+  }
+}
+
 // Main execution function
 function main() {
   const parsed = parseArgs();
@@ -706,6 +1038,21 @@ function main() {
         // Alias for upcoming with no time limit
         parsed.options.days = '365'; // List events for next year
         showUpcoming(parsed);
+        break;
+        
+      case 'create':
+      case 'add':
+        createEvent(parsed);
+        break;
+        
+      case 'update':
+      case 'edit':
+        updateEvent(parsed);
+        break;
+        
+      case 'delete':
+      case 'remove':
+        deleteEvent(parsed);
         break;
         
       default:

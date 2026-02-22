@@ -6,6 +6,9 @@ Secure Google Calendar management skill for the PAVE sandbox environment. Read a
 
 - **🔐 Secure Authentication** - OAuth tokens never exposed to sandbox code
 - **📅 Calendar Management** - List calendars, view events, search
+- **➕ Event Creation** - Create new events with full details (title, time, location, attendees)
+- **✏️ Event Updates** - Modify existing events (title, time, description, attendees)
+- **🗑️ Event Deletion** - Delete events with safety confirmations
 - **⏰ Time-based Queries** - Today's events, upcoming events, date ranges
 - **🔍 Event Search** - Search events with queries and filters
 - **📱 Multiple Output Formats** - Summary, full details, or JSON
@@ -88,6 +91,31 @@ pave-run gcal.js search "meeting" --summary
 pave-run gcal.js event <eventId> --summary
 ```
 
+### Event Management
+
+```bash
+# Create a new event
+pave-run gcal.js create --title "Team Meeting" --start "2024-01-15T10:00:00" --end "2024-01-15T11:00:00"
+
+# Create event with full details
+pave-run gcal.js create \
+  --title "Project Review" \
+  --description "Q4 project review meeting" \
+  --location "Conference Room A" \
+  --start "2024-01-15T14:00:00" \
+  --end "2024-01-15T15:00:00" \
+  --attendees "john@company.com,jane@company.com" \
+  --reminder 15
+
+# Update an existing event
+pave-run gcal.js update <eventId> --title "Updated Meeting Title"
+pave-run gcal.js update <eventId> --start "2024-01-15T10:30:00" --end "2024-01-15T11:30:00"
+pave-run gcal.js update <eventId> --location "Conference Room B"
+
+# Delete an event (with confirmation)
+pave-run gcal.js delete <eventId> --yes
+```
+
 ### Advanced Usage
 
 ```bash
@@ -118,8 +146,13 @@ pave-run gcal.js upcoming --max 10
 | `list` | List events from calendar | `[calendar]` | `--calendar <id>`, `--max <count>`, `--summary`, `--full`, `--json` |
 | `search` | Search events | `<query>` | `--calendar <id>`, `--max <count>`, `--from <date>`, `--to <date>`, `--summary`, `--full`, `--json` |
 | `event` | Get specific event details | `<eventId>` | `--calendar <id>`, `--summary`, `--json` |
+| `create, add` | Create a new event | | `--title <title>`, `--start <datetime>`, `--end <datetime>`, `--description <desc>`, `--location <loc>`, `--attendees <emails>`, `--timezone <zone>`, `--reminder <minutes>`, `--calendar <id>`, `--json` |
+| `update, edit` | Update an existing event | `<eventId>` | `--title <title>`, `--start <datetime>`, `--end <datetime>`, `--description <desc>`, `--location <loc>`, `--attendees <emails>`, `--timezone <zone>`, `--calendar <id>`, `--json` |
+| `delete, remove` | Delete an event | `<eventId>` | `--calendar <id>`, `--yes`, `--json` |
 
 ## Options
+
+### Read Options
 
 | Option | Description | Default |
 |--------|-------------|---------|
@@ -132,6 +165,25 @@ pave-run gcal.js upcoming --max 10
 | `--summary` | Human-readable output | |
 | `--full` | Show full event details | |
 | `--json` | Raw JSON output | |
+
+### Create/Update Options
+
+| Option | Description | Required | Default |
+|--------|-------------|----------|---------|
+| `--title, --summary <title>` | Event title/summary | Yes (create) | |
+| `--start <datetime>` | Start time (ISO format: 2024-01-15T10:00:00) | Yes (create) | |
+| `--end <datetime>` | End time (ISO format: 2024-01-15T11:00:00) | Yes (create) | |
+| `--description, --desc <desc>` | Event description | No | |
+| `--location, --loc <location>` | Event location | No | |
+| `--attendees <emails>` | Comma-separated attendee emails | No | |
+| `--timezone, --tz <zone>` | Time zone | No | `Asia/Hong_Kong` |
+| `--reminder <minutes>` | Reminder minutes before event | No | System default |
+
+### Delete Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--yes, -y` | Skip confirmation prompt | |
 
 ## Output Formats
 
