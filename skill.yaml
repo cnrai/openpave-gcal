@@ -2,7 +2,7 @@
 # Read and manage Google Calendar events securely using OAuth
 
 name: gcal
-version: 1.0.0
+version: 1.1.0
 description: Read and manage Google Calendar events securely using OAuth
 
 author:
@@ -86,6 +86,50 @@ commands:
       - --summary
       - --json
 
+  - name: create
+    description: Create a new calendar event
+    aliases:
+      - add
+    options:
+      - --title, --summary <title>
+      - --description, --desc <desc>
+      - --location, --loc <location>
+      - --start <datetime>
+      - --end <datetime>
+      - --timezone, --tz <zone>
+      - --attendees <emails>
+      - --reminder <minutes>
+      - -c, --calendar <id>
+      - --json
+
+  - name: update
+    description: Update an existing calendar event
+    aliases:
+      - edit
+    args:
+      - <eventId>
+    options:
+      - --title, --summary <title>
+      - --description, --desc <desc>
+      - --location, --loc <location>
+      - --start <datetime>
+      - --end <datetime>
+      - --timezone, --tz <zone>
+      - --attendees <emails>
+      - -c, --calendar <id>
+      - --json
+
+  - name: delete
+    description: Delete a calendar event
+    aliases:
+      - remove
+    args:
+      - <eventId>
+    options:
+      - -c, --calendar <id>
+      - --yes, -y
+      - --json
+
 # Token configuration for secure sandbox access
 tokens:
   google-calendar:
@@ -145,6 +189,8 @@ keywords:
   - events
   - scheduling
   - appointments
+  - event-creation
+  - event-management
 
 category: productivity
 icon: "📅"
