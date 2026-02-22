@@ -6,12 +6,12 @@ version: 1.0.0
 description: Read and manage Google Calendar events securely using OAuth
 
 author:
-  name: OpenPave
-  url: https://github.com/openpave
+  name: cnrai
+  url: https://github.com/cnrai/openpave-gcal
 
 license: MIT
-homepage: https://github.com/openpave/pave-gcal
-repository: openpave/pave-gcal
+homepage: https://github.com/cnrai/openpave-gcal
+repository: cnrai/openpave-gcal
 
 # Execution pattern
 pattern: sandbox
