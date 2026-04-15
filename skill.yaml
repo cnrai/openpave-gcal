@@ -2,7 +2,7 @@
 # Read and manage Google Calendar events securely using OAuth
 
 name: gcal
-version: 1.1.0
+version: 1.2.0
 description: Read and manage Google Calendar events securely using OAuth
 
 author:
@@ -145,6 +145,13 @@ tokens:
         - GOOGLE_CALENDAR_REFRESH_TOKEN
       optional:
         - GOOGLE_CALENDAR_ACCESS_TOKEN
+    # OAuth authorization flow configuration (for web UI authentication)
+    oauth:
+      provider: google
+      authorizeUrl: https://accounts.google.com/o/oauth2/v2/auth
+      scopes:
+        - https://www.googleapis.com/auth/calendar.readonly
+        - https://www.googleapis.com/auth/calendar.events
     config:
       env: GOOGLE_CALENDAR_ACCESS_TOKEN
       type: oauth
