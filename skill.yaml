@@ -2,7 +2,7 @@
 # Read and manage Google Calendar events securely using OAuth
 
 name: gcal
-version: 1.2.0
+version: 1.3.0
 description: Read and manage Google Calendar events securely using OAuth
 
 author:
@@ -23,14 +23,12 @@ commands:
     description: Show authentication status
     options:
       - --summary
-      - --json
 
   - name: calendars
     description: List all calendars
     options:
       - --max <number>
       - --summary
-      - --json
 
   - name: today
     description: Show today's events
@@ -39,7 +37,6 @@ commands:
       - -n, --max <count>
       - --summary
       - --full
-      - --json
 
   - name: upcoming
     description: Show upcoming events (default 7 days)
@@ -51,7 +48,6 @@ commands:
       - -d, --days <number>
       - --summary
       - --full
-      - --json
 
   - name: list
     description: List events from specific calendar
@@ -62,7 +58,6 @@ commands:
       - -n, --max <count>
       - --summary
       - --full
-      - --json
 
   - name: search
     description: Search events
@@ -75,7 +70,6 @@ commands:
       - -t, --to <date>
       - --summary
       - --full
-      - --json
 
   - name: event
     description: Get specific event details
@@ -84,7 +78,6 @@ commands:
     options:
       - -c, --calendar <id>
       - --summary
-      - --json
 
   - name: create
     description: Create a new calendar event
@@ -100,7 +93,6 @@ commands:
       - --attendees <emails>
       - --reminder <minutes>
       - -c, --calendar <id>
-      - --json
 
   - name: update
     description: Update an existing calendar event
@@ -117,7 +109,6 @@ commands:
       - --timezone, --tz <zone>
       - --attendees <emails>
       - -c, --calendar <id>
-      - --json
 
   - name: delete
     description: Delete a calendar event
@@ -128,7 +119,6 @@ commands:
     options:
       - -c, --calendar <id>
       - --yes, -y
-      - --json
 
 # Token configuration for secure sandbox access
 tokens:
