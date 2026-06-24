@@ -256,8 +256,14 @@ class CalendarClient {
       });
 
       if (!response.ok) {
-        const error = response.json();
-        const err = new Error(error.error?.message || `HTTP ${response.status}: ${response.statusText}`);
+        let error;
+        try { error = response.json(); } catch (e) { error = {}; }
+        const bodyText = typeof response.text === 'function' ? response.text() : '';
+        const errMsg = error.error?.message ||
+                       error.message ||
+                       (bodyText && bodyText.trim()) ||
+                       `HTTP ${response.status}`;
+        const err = new Error(errMsg);
         err.status = response.status;
         err.code = error.error?.code;
         err.data = error;
