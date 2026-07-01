@@ -306,7 +306,7 @@ class CalendarClient {
     const params = buildQueryString({
       timeMin: options.timeMin,
       timeMax: options.timeMax,
-      q: options.query,
+      q: options.q || options.query,
       maxResults: options.maxResults || 250,
       singleEvents: options.singleEvents !== false,
       orderBy: options.orderBy || 'startTime',
@@ -359,10 +359,19 @@ class CalendarClient {
    */
   searchEvents(query, options = {}) {
     const calendarId = options.calendar || 'primary';
+    
+    // Default to past 90 days / future 365 days if no date range specified.
+    // Without this, the API returns ALL events (including every instance of
+    // recurring events like birthdays going back decades), producing massive
+    // responses that can overwhelm the proxy.
+    const now = new Date();
+    const defaultTimeMin = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+    const defaultTimeMax = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+    
     return this.listEvents(calendarId, {
       q: query,
-      timeMin: options.timeMin,
-      timeMax: options.timeMax,
+      timeMin: options.timeMin || defaultTimeMin.toISOString(),
+      timeMax: options.timeMax || defaultTimeMax.toISOString(),
       maxResults: options.maxResults || 50,
       ...options
     });
@@ -714,7 +723,7 @@ function searchEvents(args) {
     }
     
     const client = new CalendarClient();
-    const query = args.positional[0];
+    const query = args.positional.join(' ');
     const calendarId = args.options.calendar || args.options.c || 'primary';
     
     const options = {
