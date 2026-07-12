@@ -1,6 +1,6 @@
 {
   "name": "openpave-gcal",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "Google Calendar skill for PAVE sandbox environment",
   "main": "index.js",
   "scripts": {

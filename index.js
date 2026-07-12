@@ -201,12 +201,14 @@ function proxyFetch(tokenName, url, options) {
       text: function() { return out; }, json: function() { return JSON.parse(out || '{}'); } };
   }
   if (resp.error) throw new Error(resp.error);
+  var st = resp.status || 200;
+  var ok = resp.ok !== undefined ? resp.ok : (st >= 200 && st < 300);
   if (resp.savedTo) {
-    return { ok: resp.ok || false, status: resp.status || 200, savedTo: resp.savedTo,
+    return { ok: ok, status: st, savedTo: resp.savedTo,
       headers: { get: function() { return null; } },
       text: function() { return ''; }, json: function() { return {}; } };
   }
-  return { ok: resp.ok || false, status: resp.status || 200,
+  return { ok: ok, status: st,
     headers: { get: function(name) { var hs = resp.headers || {}, ln = name.toLowerCase();
       for (var key in hs) { if (key.toLowerCase() === ln) return Array.isArray(hs[key]) ? hs[key][0] : hs[key]; }
       return null; } },
