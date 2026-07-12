@@ -556,7 +556,7 @@ TOKEN SETUP:
 function checkAuth() {
   try {
     const client = new CalendarClient();
-    const calendars = client.listCalendars({ maxResults: 1 });
+    const calendars = client.listCalendars({ maxResults: 10 });
     
     console.log('✅ Authentication successful');
     console.log(`📅 Access to ${calendars.items?.length || 0} calendar(s) confirmed`);
@@ -1133,8 +1133,11 @@ function main() {
         break;
         
       case 'list':
-        // Alias for upcoming with no time limit
-        parsed.options.days = '365'; // List events for next year
+        // List events; positional arg can be a calendar ID
+        if (parsed.positional?.[0] && !parsed.options.calendar) {
+          parsed.options.calendar = parsed.positional[0];
+        }
+        parsed.options.days = parsed.options.days || '365';
         showUpcoming(parsed);
         break;
         
