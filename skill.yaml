@@ -2,7 +2,7 @@
 # Read and manage Google Calendar events securely using OAuth
 
 name: gcal
-version: 1.3.5
+version: 1.3.6
 description: Read and manage Google Calendar events securely using OAuth
 
 author:
@@ -16,6 +16,26 @@ repository: cnrai/openpave-gcal
 # Execution pattern
 pattern: sandbox
 entrypoint: index.js
+
+usage_notes: |
+  IMPORTANT FOR AI AGENTS:
+  
+  Calendar Invite Rules (CRITICAL):
+  - ALWAYS check today's date before setting any date from a relative reference ("tomorrow", "next Monday", etc.)
+  - NEVER create a calendar event without confirmation first — present the full details (title, date, time, attendees, agenda) and wait for explicit approval before calling create
+  - Google Calendar has NO draft mode — once created, invites are sent immediately to all attendees
+  - There is no undo — deleting an event still sends a cancellation notice
+  
+  Date Handling:
+  - Always use absolute dates, never relative terms in the API call
+  - Verify timezone — default to the user's local timezone
+  - For all-day events, use date-only format (no time component)
+  - Include --reminder when creating events that need preparation
+  
+  Event Display:
+  - When showing today's events, skip daily recurring events (e.g., "Daily briefing")
+  - Only highlight one-off meetings and non-daily recurring events
+  - Show event duration and attendee count in summaries
 
 # Available commands
 commands:
